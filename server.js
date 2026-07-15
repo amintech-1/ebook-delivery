@@ -17,10 +17,12 @@ app.post("/webhook", async (req, res) => {
     const buyerName = req.body.buyer_name;
 const buyerEmail = req.body.buyer_email;
 const orderId = req.body.id;
+const downloadToken = crypto.randomBytes(24).toString("hex");
 const orderData = {
   orderId,
   buyerName,
   buyerEmail,
+  downloadToken,
   createdAt: req.body.created_at,
 };
 const ordersDir = path.join(__dirname, "orders");
@@ -48,9 +50,9 @@ await generateWatermarkPDF(
 
     res.send("OK");
     });
-app.get("/download/:orderId", async (req, res) => {
+app.get("/download/:token", async (req, res) => {
   console.log("🔥 DOWNLOAD ROUTE HIT");
-const orderId = req.params.orderId;
+const token = req.params.token;
 
 const pdfPath = path.join(
   __dirname,
