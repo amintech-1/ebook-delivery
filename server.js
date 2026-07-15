@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const { PDFDocument, rgb, degrees, StandardFonts } = require("pdf-lib");
 const { generateWatermarkPDF } = require("./src/watermark");
 const app = express();
