@@ -22,7 +22,11 @@ const orderData = {
   buyerEmail,
   createdAt: req.body.created_at,
 };
+const ordersDir = path.join(__dirname, "orders");
 
+if (!fs.existsSync(ordersDir)) {
+  fs.mkdirSync(ordersDir, { recursive: true });
+}
 const orderPath = path.join(
   __dirname,
   "orders",
