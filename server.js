@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -8,6 +9,24 @@ const app = express();
 app.use(express.json());
 app.get("/", (req, res) => {
   res.send("🚀 Ebook Delivery Server Running");
+});
+app.get("/test", async (req, res) => {
+  try {
+    const name = req.query.name || "Jessica Tan";
+    const email = req.query.email || "jessica@example.com";
+    const orderId = req.query.order || "TEST123";
+
+    await generateWatermarkPDF(
+      name,
+      email,
+      orderId
+    );
+
+    res.send(`✅ Test PDF generated for ${name}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("❌ Failed to generate PDF");
+  }
 });
 app.post("/webhook", async (req, res) => {
 
@@ -48,7 +67,7 @@ await generateWatermarkPDF(
   orderId
 );
 res.json({
-  download_url: `https://ebook-delivery.onrender.com/download/${downloadToken}`
+  download_url: `${process.env.BASE_URL}/download/${downloadToken}`
 });
 }); 
 app.get("/download/:token", async (req, res) => {
@@ -86,11 +105,11 @@ app.get("/download/:token", async (req, res) => {
     return res.status(404).send("File not found");
   }
 
-  res.download(
-    pdfPath,
-    "Android Transfer Je Kat Rumah - Licensed Copy.pdf"
+res.download(
+  pdfPath,
+  process.env.DOWNLOAD_FILENAME
   );
 });
-app.listen(3000, () => {
-  console.log("🚀 Server running at http://localhost:3000");
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`🚀 Server running at port ${process.env.PORT || 3000}`);
 });

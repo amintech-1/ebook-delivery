@@ -22,30 +22,42 @@ async function generateWatermarkPDF(name, email, orderId) {
   for (const page of pages) {
     const { width, height } = page.getSize();
 
-    page.drawText(email, {
-      x: width / 6,
-      y: height / 2,
-      size: 20,
-      font,
-      color: rgb(0.7, 0.7, 0.7),
-      opacity: 0.15,
-      rotate: degrees(45),
-    });
+    page.drawText(
+  `LICENSED COPY\n\n${name}\n${email}\n\nOrder #${orderId}`,
+  {
+    x: width / 5,
+    y: height / 2,
+    size: 20,
+    font,
+    color: rgb(0.7, 0.7, 0.7),
+    opacity: 0.09,
+    rotate: degrees(45),
+    lineHeight: 28,
+  }
+);
 
-   page.drawText(`Licensed To:`, {
+   page.drawText("Licensed Copy", {
   x: 30,
-  y: 34,
-  size: 8,
+  y: 38,
+  size: 9,
   font,
-  color: rgb(0.4, 0.4, 0.4),
+  color: rgb(0.35, 0.35, 0.35),
 });
 
 page.drawText(name, {
   x: 30,
-  y: 20,
+  y: 24,
   size: 11,
   font,
-  color: rgb(0.2, 0.2, 0.2),
+  color: rgb(0.15, 0.15, 0.15),
+});
+
+page.drawText(`Order #${orderId}`, {
+  x: 30,
+  y: 12,
+  size: 8,
+  font,
+  color: rgb(0.45, 0.45, 0.45),
 });
   }
 
