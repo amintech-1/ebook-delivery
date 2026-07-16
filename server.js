@@ -47,27 +47,49 @@ await generateWatermarkPDF(
   buyerEmail,
   orderId
 );
-
-    res.send("OK");
-    });
+res.json({
+  download_url: `https://ebook-delivery.onrender.com/download/${downloadToken}`
+});
+}); 
 app.get("/download/:token", async (req, res) => {
   console.log("🔥 DOWNLOAD ROUTE HIT");
-const token = req.params.token;
 
-const pdfPath = path.join(
-  __dirname,
-  "output",
-  `${orderId}.pdf`
-);
+  const token = req.params.token;
 
-if (!fs.existsSync(pdfPath)) {
-  return res.status(404).send("File not found");
-}
+  const ordersDir = path.join(__dirname, "orders");
+  const files = fs.readdirSync(ordersDir);
 
-res.download(
-  pdfPath,
-  "Android Transfer Je Kat Rumah - Licensed Copy.pdf"
-);
+  let order = null;
+
+  for (const file of files) {
+    const data = JSON.parse(
+      fs.readFileSync(path.join(ordersDir, file))
+    );
+
+    if (data.downloadToken === token) {
+      order = data;
+      break;
+    }
+  }
+
+  if (!order) {
+    return res.status(404).send("Invalid download link");
+  }
+
+  const pdfPath = path.join(
+    __dirname,
+    "output",
+    `${order.orderId}.pdf`
+  );
+
+  if (!fs.existsSync(pdfPath)) {
+    return res.status(404).send("File not found");
+  }
+
+  res.download(
+    pdfPath,
+    "Android Transfer Je Kat Rumah - Licensed Copy.pdf"
+  );
 });
 app.listen(3000, () => {
   console.log("🚀 Server running at http://localhost:3000");
