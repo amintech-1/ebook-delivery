@@ -10,6 +10,113 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("🚀 Ebook Delivery Server Running");
 });
+
+app.get("/redeem", (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dapatkan Ebook Berlesen</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#0b1736;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.box{
+background:white;
+width:420px;
+max-width:90%;
+padding:35px;
+border-radius:15px;
+text-align:center;
+box-shadow:0 15px 40px rgba(0,0,0,.25);
+}
+
+input{
+width:100%;
+padding:14px;
+margin-top:18px;
+font-size:16px;
+border:1px solid #ccc;
+border-radius:8px;
+box-sizing:border-box;
+}
+
+button{
+margin-top:20px;
+width:100%;
+padding:14px;
+background:#0d6efd;
+color:white;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+background:#0b5ed7;
+}
+
+.note{
+margin-top:18px;
+font-size:13px;
+color:#666;
+line-height:1.6;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>📱 Dapatkan Ebook Berlesen Anda</h2>
+
+<p>
+Sila masukkan <b>email yang digunakan semasa membuat pembelian di SociaBuzz.</b>
+</p>
+
+<form action="/verify" method="GET">
+
+<input
+type="email"
+name="email"
+placeholder="contoh@gmail.com"
+required>
+
+<button>
+📥 Dapatkan Ebook Saya
+</button>
+
+</form>
+
+<div class="note">
+
+⚠️ Pastikan anda memasukkan <b>alamat email</b> (contoh@gmail.com), <b>bukan alamat rumah</b>.
+
+<br><br>
+
+Email ini digunakan untuk mengesahkan pembelian anda sebelum ebook berlesen dijana.
+
+</div>
+
+</div>
+
+</body>
+</html>
+`);
+});
 app.get("/test", async (req, res) => {
   try {
     const name = req.query.name || "Jessica Tan";
@@ -27,6 +134,97 @@ app.get("/test", async (req, res) => {
     console.error(err);
     res.status(500).send("❌ Failed to generate PDF");
   }
+});
+app.get("/fakeorder", async (req, res) => {
+
+const buyerName = "Ahmad Amin";
+const buyerEmail = "amnzfon1@gmail.com";
+const orderId = Date.now().toString();
+
+const downloadToken = crypto.randomBytes(24).toString("hex");
+
+const orderData = {
+    orderId,
+    buyerName,
+    buyerEmail,
+    downloadToken,
+    createdAt: new Date().toISOString()
+};
+
+const ordersDir = path.join(__dirname,"orders");
+
+if(!fs.existsSync(ordersDir)){
+    fs.mkdirSync(ordersDir,{recursive:true});
+}
+
+fs.writeFileSync(
+    path.join(ordersDir,`${orderId}.json`),
+    JSON.stringify(orderData,null,2)
+);
+
+await generateWatermarkPDF(
+    buyerName,
+    buyerEmail,
+    orderId
+);
+
+res.send("✅ Fake order created!");
+
+});
+app.get("/verify", (req, res) => {
+
+const email = req.query.email;
+
+if(!email){
+
+return res.send("Sila masukkan email.");
+
+}
+
+const ordersDir = path.join(__dirname,"orders");
+
+const files = fs.readdirSync(ordersDir);
+
+let foundOrder = null;
+
+for(const file of files){
+
+const order = JSON.parse(
+
+fs.readFileSync(path.join(ordersDir,file))
+
+);
+
+if(order.buyerEmail.toLowerCase()===email.toLowerCase()){
+
+foundOrder = order;
+
+break;
+
+}
+
+}
+
+if(!foundOrder){
+
+return res.send(`
+<h2>Email tidak dijumpai.</h2>
+
+<p>
+
+Pastikan anda menggunakan email yang sama seperti semasa membuat pembayaran di SociaBuzz.
+
+</p>
+`);
+
+}
+
+res.redirect(
+
+`/download/${foundOrder.downloadToken}`
+
+);
+
 });
 app.post("/webhook", async (req, res) => {
 
