@@ -135,42 +135,7 @@ app.get("/test", async (req, res) => {
     res.status(500).send("❌ Failed to generate PDF");
   }
 });
-app.get("/fakeorder", async (req, res) => {
 
-const buyerName = "Ahmad Amin";
-const buyerEmail = "amnzfon1@gmail.com";
-const orderId = Date.now().toString();
-
-const downloadToken = crypto.randomBytes(24).toString("hex");
-
-const orderData = {
-    orderId,
-    buyerName,
-    buyerEmail,
-    downloadToken,
-    createdAt: new Date().toISOString()
-};
-
-const ordersDir = path.join(__dirname,"orders");
-
-if(!fs.existsSync(ordersDir)){
-    fs.mkdirSync(ordersDir,{recursive:true});
-}
-
-fs.writeFileSync(
-    path.join(ordersDir,`${orderId}.json`),
-    JSON.stringify(orderData,null,2)
-);
-
-await generateWatermarkPDF(
-    buyerName,
-    buyerEmail,
-    orderId
-);
-
-res.send("✅ Fake order created!");
-
-});
 app.get("/verify", (req, res) => {
 
 const email = req.query.email;
